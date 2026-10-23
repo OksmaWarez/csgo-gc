@@ -47,8 +47,7 @@ jobs:
         path: |
           ${{ github.workspace }}/build/vcpkg_installed
           ${{ github.workspace }}/build_ds/vcpkg_installed
-        key: vcpkg-${{ matrix.os }}-${{ steps.runner-image.outputs.version }}-${{ steps.vcpkg-commit.outputs.sha }}-${{ hashFiles('vcpkg.json', 'vcpkg-configuration.json', 'overlays/**') }}
-        restore-keys: |
+        key: vcpkg-${{ matrix.os }}-${{ steps.runner-image.outputs.version }}-${{ steps.vcpkg-commit.outputs.sha }}-${{ hashFiles('vcpkg.json', 'vcpkg-configuration.json', 'overlays/**', 'triplets/**') }}
           vcpkg-${{ matrix.os }}-${{ steps.runner-image.outputs.version }}-${{ steps.vcpkg-commit.outputs.sha }}-
 
     - if: matrix.os == 'ubuntu-latest'
@@ -68,14 +67,21 @@ jobs:
         cmake -B ${{ github.workspace }}/build_ds -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -S ${{ github.workspace }} -DCMAKE_C_COMPILER_LAUNCHER=sccache -DCMAKE_CXX_COMPILER_LAUNCHER=sccache -DCMAKE_C_FLAGS=-m32 -DCMAKE_CXX_FLAGS=-m32 -DCMAKE_ASM_FLAGS=-m32 -DOUTDIR=${{ github.workspace }}/release -DCMAKE_TOOLCHAIN_FILE=${{ env.VCPKG_ROOT }}/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x86-linux
         cmake --build ${{ github.workspace }}/build_ds --config ${{ matrix.build_type }} --target srcds csgo_gc game_types_tests
         ctest --test-dir ${{ github.workspace }}/build_ds --build-config ${{ matrix.build_type }} --output-on-failure -R '^game_types_tests$'
-
     - if: matrix.os == 'macos-15'
       name: Build macOS
       run: |
         mkdir ${{ github.workspace }}/release
-        cmake -B ${{ github.workspace }}/build -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -S ${{ github.workspace }} -DCMAKE_OSX_ARCHITECTURES=x86_64 -DFUNCHOOK_CPU=x86 -DCMAKE_C_COMPILER_LAUNCHER=sccache -DCMAKE_CXX_COMPILER_LAUNCHER=sccache -DOUTDIR=${{ github.workspace }}/release -DCMAKE_TOOLCHAIN_FILE=${{ env.VCPKG_ROOT }}/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-osx -DBUILD_TESTING=ON
+        cmake -B ${{ github.workspace }}/build -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -S ${{ github.workspace }} -DCMAKE_OSX_ARCHITECTURES=x86_64 -DCMAKE_OSX_DEPLOYMENT_TARGET=11.0 -DFUNCHOOK_CPU=x86 -DCMAKE_C_COMPILER_LAUNCHER=sccache -DCMAKE_CXX_COMPILER_LAUNCHER=sccache -DOUTDIR=${{ github.workspace }}/release -DCMAKE_TOOLCHAIN_FILE=${{ env.VCPKG_ROOT }}/scripts/buildsystems/vcpkg.cmake -DVCPKG_OVERLAY_TRIPLETS=${{ github.workspace }}/triplets -DVCPKG_TARGET_TRIPLET=x64-osx-bigsur -DBUILD_TESTING=ON
         cmake --build ${{ github.workspace }}/build --config ${{ matrix.build_type }}
         ctest --test-dir ${{ github.workspace }}/build --build-config ${{ matrix.build_type }} --output-on-failure
+
+    - if: matrix.os == 'macos-15'
+      name: Verify deployment target
+      run: |
+        for f in $(find ${{ github.workspace }}/release -name '*.dylib'); do
+          echo "== $f"
+          otool -l "$f" | grep -A4 -E 'LC_BUILD_VERSION|LC_VERSION_MIN_MACOSX'
+        done
 
     - if: matrix.os == 'windows-latest'
       name: Build Windows
@@ -122,7 +128,7 @@ jobs:
             )
             ;;
           macos-15)
-            VCPKG_SHARES=("$GITHUB_WORKSPACE/build/vcpkg_installed/x64-osx/share")
+            VCPKG_SHARES=("$GITHUB_WORKSPACE/build/vcpkg_installed/x64-osx-bigsur/share")
             ;;
           windows-latest)
             VCPKG_SHARES=("$GITHUB_WORKSPACE/build/vcpkg_installed/x86-windows-static/share")
