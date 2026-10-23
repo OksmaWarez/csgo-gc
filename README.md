@@ -1,4 +1,5 @@
 # csgo_gc
+Now with macOS 11.0 (Big Sur) compatibility.
 
 > [!CAUTION]
 > This project is under active development and is approaching stability, but issues may still exist. Back up your game files before installation.
