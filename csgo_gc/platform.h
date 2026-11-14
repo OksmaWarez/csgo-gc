@@ -74,12 +74,4 @@ bool UpdateGraffitiKey(std::string_view moduleName, const void *original, const 
 // returns true if serverbrowser was loaded and we updated it
 bool UpdateServerBrowserAppId(uint32_t appId);
 
-// Make the mouse cursor visible and release any mouse grab / relative mouse mode
-// held by the game window. The game hides the cursor while it waits for the Steam
-// overlay checkout during a store purchase; since the checkout is simulated, the
-// overlay never hands the cursor back on Linux and macOS (alt-tabbing restores it
-// because SDL re-evaluates the cursor state on focus change). Must be called from
-// the main thread. No-op on Windows.
-void RestoreMouseCursor();
-
 } // namespace Platform
