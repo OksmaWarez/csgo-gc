@@ -371,9 +371,4 @@ bool GetModuleReadableRanges(std::string_view moduleName, std::vector<std::pair<
     return !ranges.empty();
 }
 
-void RestoreMouseCursor()
-{
-    // not needed on windows
-}
-
 } // namespace Platform
