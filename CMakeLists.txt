@@ -1,6 +1,19 @@
 cmake_minimum_required(VERSION 3.20)
 
-set(CMAKE_OSX_DEPLOYMENT_TARGET "10.13" CACHE STRING "macOS deployment target")
+set(CMAKE_OSX_DEPLOYMENT_TARGET "10.15" CACHE STRING "macOS deployment target")
+
+# vcpkg builds dependencies with its own triplet, which does not follow
+# CMAKE_OSX_DEPLOYMENT_TARGET. Use our x64-osx overlay triplet (it pins the same
+# deployment target) so the libraries are not built for a newer macOS than we
+# claim to support. This must be set before project(), which loads the vcpkg
+# toolchain. Keep the version in triplets/x64-osx.cmake in sync with the above.
+if(APPLE)
+    set(_gc_triplets "${CMAKE_CURRENT_LIST_DIR}/triplets")
+    if(NOT _gc_triplets IN_LIST VCPKG_OVERLAY_TRIPLETS)
+        set(VCPKG_OVERLAY_TRIPLETS ${VCPKG_OVERLAY_TRIPLETS} "${_gc_triplets}")
+    endif()
+    unset(_gc_triplets)
+endif()
 
 project(csgo_gc)
 

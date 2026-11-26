@@ -156,7 +156,7 @@ jobs:
         #
         # macOS is the opposite: a runner update does change the Xcode/SDK and
         # the libraries must be rebuilt, so keep the image version there.
-        key: vcpkg-${{ matrix.platform || steps.runner-image.outputs.version }}-${{ matrix.container_digest || 'host-image' }}-${{ steps.toolchain.outputs.id }}-${{ steps.vcpkg-commit.outputs.sha }}-${{ hashFiles('vcpkg.json', 'vcpkg-configuration.json', 'overlays/**') }}
+        key: vcpkg-${{ matrix.platform || steps.runner-image.outputs.version }}-${{ matrix.container_digest || 'host-image' }}-${{ steps.toolchain.outputs.id }}-${{ steps.vcpkg-commit.outputs.sha }}-${{ hashFiles('vcpkg.json', 'vcpkg-configuration.json', 'overlays/**', 'triplets/**') }}
         restore-keys: |
           vcpkg-${{ matrix.platform || steps.runner-image.outputs.version }}-${{ matrix.container_digest || 'host-image' }}-${{ steps.toolchain.outputs.id }}-${{ steps.vcpkg-commit.outputs.sha }}-
 
